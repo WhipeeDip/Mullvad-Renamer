@@ -133,4 +133,4 @@ dmypy.json
 
 # user supplied files
 Servers _ Mullvad VPN**
-mullvad-wireguard-configs/
+mullvad-wireguard-configs**

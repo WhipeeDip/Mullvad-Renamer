@@ -10,6 +10,11 @@ import pycountry
 HTML_PATH = 'Servers _ Mullvad VPN.html' # https://mullvad.net/en/servers/#wireguard
 CONFIG_PATH = 'mullvad-wireguard-configs' # path to directory with wireguard configs
 
+# Constants, do not touch
+WIREGUARD_MAX_LEN = 15
+NAME_TEMPLATE = 'mv-{}{}-{}.conf' # mv-COUNTRYcity-server.conf
+CITY_LEN = 5
+
 def main():
     print('\n********** Make sure you read the README! **********\n')
 
@@ -71,8 +76,8 @@ def parse_mullvad_servers():
     for row in rows:
         tds = row.find_all('td')
         name = tds[0].get_text().split('-', 1)[0] # strip everything after first dash
-        country = tds[1].get_text()
-        city = tds[2].get_text().replace(', ', '')
+        country = tds[1].get_text().upper()
+        city = tds[2].get_text().replace(', ', '')[:CITY_LEN].lower()
         city = ''.join(city.split()) # strip all whitespace
 
         try:
@@ -101,15 +106,8 @@ def calculate_renames(server_dict):
 
         country = server_info['country']
         city = server_info['city']
-        insert_str = (f'-{country}_{city}')
+        new_name = NAME_TEMPLATE.format(country, city, server_name)
 
-        insert_index = file.find('-')
-        if insert_index == -1:
-            print(f'\t{file} did not follow expected file format; skipping')
-            fail.append(file)
-            continue
-
-        new_name = file[:insert_index] + insert_str + file[insert_index:]
         success.append({'old': file, 'new': new_name})
 
     return {'success': success, 'fail': fail}

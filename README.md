@@ -2,6 +2,8 @@
 
 Mullvad's WireGuard config generator does not include server location names, which is a hassle if you want import everything. This Python script renames the configurations to include the location.
 
+The new file name will have the format of `mv-COUNTRYcity-server.conf`, where COUNTRY is the two digit country code and city is the city name truncated to five characters. This is because WireGuard has a 15 character limit and I feel this format still captures enough info to pick which server location to use.
+
 ## Requirements
 
 * Python 3.6+
