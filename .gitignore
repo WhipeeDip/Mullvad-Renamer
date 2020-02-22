@@ -127,3 +127,10 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# vs code
+.vscode
+
+# user supplied files
+Servers _ Mullvad VPN**
+mullvad-wireguard-configs/
