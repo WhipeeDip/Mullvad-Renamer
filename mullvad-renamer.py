@@ -1,6 +1,8 @@
 import os
-from os import listdir
+from os import listdir, path
 from os.path import isfile, join
+from pathlib import Path
+import shutil
 from bs4 import BeautifulSoup
 import pycountry
 
@@ -21,6 +23,10 @@ def main():
 
     print('File rename preview: ')
     print('Will be renamed: ')
+    if not success:
+        print(f'\tNo renames found, exiting.')
+        exit()
+
     for rename in success:
         old = rename['old']
         new = rename['new']
@@ -31,6 +37,7 @@ def main():
     if not failed:
         print('\tNo failures!')
 
+    print('Do you want to continue renaming?')
     while True:
         input_continue = input('Y to continue, N to exit: ').strip().upper()
         if input_continue == 'Y':
@@ -39,8 +46,18 @@ def main():
             print('Exiting, no files were renamed.')
             exit()
 
+    print('If destination files exist, do you want to overwrite?')
+    while True:
+        input_overwrite = input('Y to allow overwrite, N to skip on existing: ').strip().upper()
+        if input_overwrite == 'Y':
+            bool_overwrite = True
+            break
+        elif input_overwrite == 'N':
+            bool_overwrite = False
+            break
+
     print('Renaming...')
-    rename_files(success)
+    rename_files(success, bool_overwrite)
 
     print('\nDone!')
 
@@ -76,12 +93,12 @@ def calculate_renames(server_dict):
     for file in files:
         try:
             server_name = file.split('mullvad-')[1].split('.conf')[0]
-        except IndexError:
+            server_info = server_dict[server_name]
+        except (IndexError, KeyError):
             print(f'\t{file} did not follow expected file format; skipping')
             fail.append(file)
             continue
 
-        server_info = server_dict[server_name]
         country = server_info['country']
         city = server_info['city']
         insert_str = (f'-{country}_{city}')
@@ -97,12 +114,25 @@ def calculate_renames(server_dict):
 
     return {'success': success, 'fail': fail}
 
-def rename_files(rename_dict):
+def rename_files(rename_dict, overwrite):
     for rename in rename_dict:
         old = os.path.join(CONFIG_PATH, rename['old'])
         new = os.path.join(CONFIG_PATH, rename['new'])
-        print (f'\tRenaming {old} to {new}...')
-        os.rename(old, new)
+        print(f'Renaming {old} to {new}...')
+
+        try:
+            if path.exists(new):
+                if overwrite:
+                    print(f'\tOverwriting {new}')
+                    os.replace(old, new)
+                else:
+                    print(f'\tDestination file {new} exists, but overwrite was not allowed. Skipping')
+                    continue
+            else:
+                os.rename(old, new)
+        except Exception as ex:
+            print(f'\tCould not rename {old}, skipping file:\n{ex}')
+            continue
 
 # Check for main function execution
 if __name__ == '__main__':
