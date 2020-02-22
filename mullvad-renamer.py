@@ -5,6 +5,7 @@ from pathlib import Path
 import shutil
 from bs4 import BeautifulSoup
 import pycountry
+from unidecode import unidecode
 
 # Configuration here
 HTML_PATH = 'Servers _ Mullvad VPN.html' # https://mullvad.net/en/servers/#wireguard
@@ -77,8 +78,9 @@ def parse_mullvad_servers():
         tds = row.find_all('td')
         name = tds[0].get_text().split('-', 1)[0] # strip everything after first dash
         country = tds[1].get_text().upper()
-        city = tds[2].get_text().replace(', ', '')[:CITY_LEN].lower()
+        city = tds[2].get_text().replace(', ', '')
         city = ''.join(city.split()) # strip all whitespace
+        city = unidecode(city).lower()[:CITY_LEN] # remove chars that aren't [a-zA-Z]
 
         try:
             country_iso2 = pycountry.countries.search_fuzzy(country)[0].alpha_2
